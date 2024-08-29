@@ -12,4 +12,5 @@ func init() {
 	beego.Router("/api/breed-images", &controllers.BreedsController{}, "get:GetBreedImages")
 	beego.Router("/api/favorites", &controllers.VotingController{}, "post:AddFavorite")
 	beego.Router("/api/votes", &controllers.VotingController{}, "post:Vote")
+	beego.Router("/api/get_favorites", &controllers.FavoritesController{}, "get:GetFavorites")
 }
