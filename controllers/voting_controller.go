@@ -65,7 +65,6 @@ func makeAPICall(method, url string, body []byte, apiKey string) chan APIRespons
 }
 
 func (c *VotingController) AddFavorite() {
-	logs.Info("AddFavorite function called")
 
 	body, err := ioutil.ReadAll(c.Ctx.Request.Body)
 	if err != nil {
@@ -76,8 +75,6 @@ func (c *VotingController) AddFavorite() {
 		return
 	}
 
-	logs.Info("Received body:", string(body))
-
 	var req FavoriteRequest
 	if err := json.Unmarshal(body, &req); err != nil {
 		logs.Error("Failed to unmarshal request body:", err)
@@ -86,8 +83,6 @@ func (c *VotingController) AddFavorite() {
 		c.ServeJSON()
 		return
 	}
-
-	logs.Info("Parsed request:", req)
 
 	url := "https://api.thecatapi.com/v1/favourites"
 	apiKey, err := web.AppConfig.String("cat_api_key")
