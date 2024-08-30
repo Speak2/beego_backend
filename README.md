@@ -122,6 +122,8 @@ staticdir = static
 
 Replace `YOUR_CAT_API_KEY` with the API key you obtained from The Cat API.
 
+For reference follow `app.conf.sample` file 
+
 ## Running the Project
 
 To run the project, use the following command from the project root directory:
