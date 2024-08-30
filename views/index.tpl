@@ -2,15 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="/static/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
       content="Web site created using create-react-app"
     />
-    <link rel="apple-touch-icon" href="/static/logo192.png" />
-    <link rel="manifest" href="/static/manifest.json" />
+    <link rel="manifest" href="/static/build/manifest.json" />
     <title>The Cat API - Cat as a Service</title>
     <link href="/static/build/static/css/main.24ae8cf2.css" rel="stylesheet">
 </head>

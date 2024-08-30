@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-    beego.Router("/", &controllers.MainController{})
+    beego.Router("/*", &controllers.MainController{})
 	beego.Router("/api/random-cat", &controllers.RandomCatController{}) 
 	beego.Router("/api/breeds", &controllers.BreedsController{}, "get:GetAllBreeds")
 	beego.Router("/api/breed-images", &controllers.BreedsController{}, "get:GetBreedImages")

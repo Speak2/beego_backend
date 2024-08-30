@@ -9,7 +9,7 @@ import (
 )
 
 type BreedsController struct {
-	web.Controller // Use Beego v2's Controller
+	web.Controller 
 }
 
 type Breed struct {

@@ -2,16 +2,22 @@
 
 This project is a Go-based backend service that interacts with The Cat API to provide various cat-related functionalities. It uses the Beego web framework and offers endpoints for fetching random cat images, breed information, favoriting images, and voting on cats.
 
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Speak2/beego_backend/graphs/commit-activity)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Speak2/beego_backend/issues)
+
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Running the Project](#running-the-project)
-5. [API Endpoints](#api-endpoints)
-6. [Project Structure](#project-structure)
-7. [Contributing](#contributing)
-8. [License](#license)
+2. [Technologies Used](#technologies-used)
+3. [Key Features](#key-features)
+4. [Installation](#installation)
+5. [Configuration](#configuration)
+6. [Running the Project](#running-the-project)
+7. [API Endpoints](#api-endpoints)
+8. [Project Structure](#project-structure)
+9. [Contributing](#contributing)
+10. [Authors](#authors)
+11. [License](#license)
 
 ## Prerequisites
 
@@ -19,6 +25,29 @@ Before you begin, ensure you have the following installed on your system:
 
 - Go (version 1.16 or later)
 - Git
+- Beego
+
+## Technologies Used
+
+- [Go](https://golang.org/) - The main programming language
+- [Beego v2](https://github.com/beego/beego) - Web framework for building the API
+- [The Cat API](https://thecatapi.com/) - External API for cat-related data
+- [React](https://react.dev/) - Front-end javascript framework
+- [TailwindCSS](https://tailwindcss.com/) - Front-end css framework
+
+
+## Key Features
+
+- Fetch random cat images
+- Retrieve comprehensive breed information
+- Get breed-specific images
+- Favorite cat images
+- Vote on cat images
+- Manage favorite cat images (add, list, delete)
+- RESTful API design
+- Configuration management using Beego's app.conf
+
+
 
 ## Installation
 
@@ -50,11 +79,13 @@ If you haven't installed Go, follow these steps:
 
 ### 2. Clone the Repository
 
-Clone this repository to your local machine:
+Clone this repository to your local machine in the default Go path:
 
 ```
+mkdir -p $GOPATH/src/
+cd $GOPATH/src/
 git clone https://github.com/Speak2/beego_backend
-cd cat-api-go-project
+cd beego_backend
 ```
 
 ### 3. Install Dependencies
@@ -86,6 +117,7 @@ appname = cats_backend
 httpport = 8080
 runmode = dev
 cat_api_key = YOUR_CAT_API_KEY
+staticdir = static
 ```
 
 Replace `YOUR_CAT_API_KEY` with the API key you obtained from The Cat API.
@@ -156,7 +188,17 @@ cat-api-go-project/
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## Authors
+This project is for Django admin panel practice created by me for assignment purposes during my internship days at w3 egnineers ltd. 
+ 
+Nahid Mahamud  – nahid.nm91@gmail.com
+ 
+ You can find me here at:
+[Github](https://github.com/Speak2) 
+
 ## License
 
-[Specify your license here]
+This project is licensed under the MIT License - see the LICENSE.md file for details
+
+MIT © Nahid Mahamud
 

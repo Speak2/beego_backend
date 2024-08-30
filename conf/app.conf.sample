@@ -1,0 +1,5 @@
+appname = cats_backend
+httpport = 8080
+runmode = dev
+cat_api_key = your_api_key
+staticdir = static
