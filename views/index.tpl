@@ -11,12 +11,12 @@
     />
     <link rel="apple-touch-icon" href="/static/logo192.png" />
     <link rel="manifest" href="/static/manifest.json" />
-    <title>React App</title>
-    <link href="/static/build/static/css/main.e1aec540.css" rel="stylesheet">
+    <title>The Cat API - Cat as a Service</title>
+    <link href="/static/build/static/css/main.24ae8cf2.css" rel="stylesheet">
 </head>
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <script src="/static/build/static/js/main.1ecbdf37.js"></script>
+    <script src="/static/build/static/js/main.8ff5e7a7.js"></script>
 </body>
 </html>

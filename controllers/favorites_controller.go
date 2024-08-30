@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"net/http"
 	"io"
+	"net/http"
 
 	"github.com/beego/beego/v2/server/web"
 )
@@ -24,6 +24,34 @@ type Favorite struct {
 	} `json:"image"`
 }
 
+
+func makeAPICalls(method, url, apiKey string) chan APIResponse {
+	responseChan := make(chan APIResponse)
+
+	go func() {
+		client := &http.Client{}
+		req, err := http.NewRequest(method, url, nil)
+		if err != nil {
+			responseChan <- APIResponse{nil, err}
+			return
+		}
+
+		req.Header.Add("x-api-key", apiKey)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			responseChan <- APIResponse{nil, err}
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		responseChan <- APIResponse{body, err}
+	}()
+
+	return responseChan
+}
+
 func (c *FavoritesController) GetFavorites() {
 	apiKey, err := web.AppConfig.String("cat_api_key")
 	if err != nil {
@@ -34,36 +62,19 @@ func (c *FavoritesController) GetFavorites() {
 	}
 
 	url := "https://api.thecatapi.com/v1/favourites"
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		c.Data["json"] = map[string]string{"error": "Error creating request"}
-		c.ServeJSON()
-		return
-	}
-
-	req.Header.Add("x-api-key", apiKey)
-
-	resp, err := client.Do(req)
-	if err != nil {
+	
+	responseChan := makeAPICalls("GET", url, apiKey)
+	
+	response := <-responseChan
+	if response.Error != nil {
 		c.Ctx.Output.SetStatus(http.StatusInternalServerError)
 		c.Data["json"] = map[string]string{"error": "Error fetching favorites"}
 		c.ServeJSON()
 		return
 	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		c.Data["json"] = map[string]string{"error": "Error reading response body"}
-		c.ServeJSON()
-		return
-	}
 
 	var favorites []Favorite
-	err = json.Unmarshal(body, &favorites)
+	err = json.Unmarshal(response.Body, &favorites)
 	if err != nil {
 		c.Ctx.Output.SetStatus(http.StatusInternalServerError)
 		c.Data["json"] = map[string]string{"error": "Error decoding response: " + err.Error()}

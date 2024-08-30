@@ -27,25 +27,39 @@ type BreedImage struct {
 	Height int    `json:"height"`
 }
 
+ 
+
+func makeAPICalle(url string) chan APIResponse {
+	responseChan := make(chan APIResponse)
+
+	go func() {
+		resp, err := http.Get(url)
+		if err != nil {
+			responseChan <- APIResponse{nil, err}
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		responseChan <- APIResponse{body, err}
+	}()
+
+	return responseChan
+}
+
 func (c *BreedsController) GetAllBreeds() {
 	url := "https://api.thecatapi.com/v1/breeds"
-	resp, err := http.Get(url)
-	if err != nil {
-		c.Data["json"] = map[string]string{"error": "Failed to fetch breeds"}
-		c.ServeJSON()
-		return
-	}
-	defer resp.Body.Close()
+	responseChan := makeAPICalle(url)
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		c.Data["json"] = map[string]string{"error": "Failed to read response"}
+	response := <-responseChan
+	if response.Error != nil {
+		c.Data["json"] = map[string]string{"error": "Failed to fetch breeds"}
 		c.ServeJSON()
 		return
 	}
 
 	var breeds []Breed
-	err = json.Unmarshal(body, &breeds)
+	err := json.Unmarshal(response.Body, &breeds)
 	if err != nil {
 		c.Data["json"] = map[string]string{"error": "Failed to parse breeds data"}
 		c.ServeJSON()
@@ -65,23 +79,17 @@ func (c *BreedsController) GetBreedImages() {
 	}
 
 	url := fmt.Sprintf("https://api.thecatapi.com/v1/images/search?breed_id=%s&limit=8", breedID)
-	resp, err := http.Get(url)
-	if err != nil {
-		c.Data["json"] = map[string]string{"error": "Failed to fetch breed images"}
-		c.ServeJSON()
-		return
-	}
-	defer resp.Body.Close()
+	responseChan := makeAPICalle(url)
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		c.Data["json"] = map[string]string{"error": "Failed to read response"}
+	response := <-responseChan
+	if response.Error != nil {
+		c.Data["json"] = map[string]string{"error": "Failed to fetch breed images"}
 		c.ServeJSON()
 		return
 	}
 
 	var breedImages []BreedImage
-	err = json.Unmarshal(body, &breedImages)
+	err := json.Unmarshal(response.Body, &breedImages)
 	if err != nil {
 		c.Data["json"] = map[string]string{"error": "Failed to parse breed images data"}
 		c.ServeJSON()

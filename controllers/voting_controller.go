@@ -3,10 +3,12 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"net/http" 
-	"github.com/beego/beego/v2/server/web"
+	"net/http"
+
 	"github.com/astaxie/beego/logs"
+	"github.com/beego/beego/v2/server/web"
 )
 
 type VotingController struct {
@@ -24,10 +26,47 @@ type FavoriteRequest struct {
 	SubID   string `json:"sub_id"`
 }
 
+type APIResponse struct {
+	Body  []byte
+	Error error
+}
+
+func makeAPICall(method, url string, body []byte, apiKey string) chan APIResponse {
+	responseChan := make(chan APIResponse)
+
+	go func() {
+		client := &http.Client{}
+		req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+		if err != nil {
+			responseChan <- APIResponse{nil, fmt.Errorf("failed to create request: %v", err)}
+			return
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("x-api-key", apiKey)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			responseChan <- APIResponse{nil, fmt.Errorf("failed to make API call: %v", err)}
+			return
+		}
+		defer resp.Body.Close()
+
+		responseBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			responseChan <- APIResponse{nil, fmt.Errorf("failed to read response body: %v", err)}
+			return
+		}
+
+		responseChan <- APIResponse{responseBody, nil}
+	}()
+
+	return responseChan
+}
+
 func (c *VotingController) AddFavorite() {
 	logs.Info("AddFavorite function called")
 
-	// Read the request body
 	body, err := ioutil.ReadAll(c.Ctx.Request.Body)
 	if err != nil {
 		logs.Error("Failed to read request body:", err)
@@ -37,7 +76,6 @@ func (c *VotingController) AddFavorite() {
 		return
 	}
 
-	// Log the received body for debugging
 	logs.Info("Received body:", string(body))
 
 	var req FavoriteRequest
@@ -52,7 +90,7 @@ func (c *VotingController) AddFavorite() {
 	logs.Info("Parsed request:", req)
 
 	url := "https://api.thecatapi.com/v1/favourites"
-	apiKey,err := web.AppConfig.String("cat_api_key") // Make sure to add this to your app.conf
+	apiKey, err := web.AppConfig.String("cat_api_key")
 	if err != nil {
 		c.Data["json"] = map[string]string{"error": "Failed to get API key"}
 		c.ServeJSON()
@@ -60,31 +98,44 @@ func (c *VotingController) AddFavorite() {
 	}
 
 	requestBody, _ := json.Marshal(req)
-	client := &http.Client{}
-	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBody))
-	if err != nil {
-		logs.Error("Failed to create request:", err)
-		c.Ctx.Output.SetStatus(500)
-		c.Data["json"] = map[string]string{"error": "Failed to create request"}
-		c.ServeJSON()
-		return
-	}
+	responseChan := makeAPICall("POST", url, requestBody, apiKey)
 
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("x-api-key", apiKey)
-
-	resp, err := client.Do(httpReq)
-	if err != nil {
-		logs.Error("Failed to add favorite:", err)
+	response := <-responseChan
+	if response.Error != nil {
+		logs.Error("Failed to add favorite:", response.Error)
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = map[string]string{"error": "Failed to add favorite"}
 		c.ServeJSON()
 		return
 	}
-	defer resp.Body.Close()
 
-	responseBody, _ := ioutil.ReadAll(resp.Body)
-	c.Data["json"] = json.RawMessage(responseBody)
+	c.Data["json"] = json.RawMessage(response.Body)
+	c.ServeJSON()
+}
+
+func (c *VotingController) DeleteFavorite() {
+	favoriteID := c.Ctx.Input.Param(":favoriteId")
+
+	url := fmt.Sprintf("https://api.thecatapi.com/v1/favourites/%s", favoriteID)
+	apiKey, err := web.AppConfig.String("cat_api_key")
+	if err != nil {
+		c.Data["json"] = map[string]string{"error": "Failed to get API key"}
+		c.ServeJSON()
+		return
+	}
+
+	responseChan := makeAPICall("DELETE", url, nil, apiKey)
+
+	response := <-responseChan
+	if response.Error != nil {
+		logs.Error("Failed to delete favorite:", response.Error)
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]string{"error": "Failed to delete favorite"}
+		c.ServeJSON()
+		return
+	}
+
+	c.Data["json"] = map[string]string{"message": "Favorite deleted successfully"}
 	c.ServeJSON()
 }
 
@@ -97,16 +148,25 @@ func (c *VotingController) Vote() {
 	}
 
 	url := "https://api.thecatapi.com/v1/votes"
-	body, _ := json.Marshal(req)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+	apiKey, err := web.AppConfig.String("cat_api_key")
 	if err != nil {
+		c.Data["json"] = map[string]string{"error": "Failed to get API key"}
+		c.ServeJSON()
+		return
+	}
+
+	body, _ := json.Marshal(req)
+	responseChan := makeAPICall("POST", url, body, apiKey)
+
+	response := <-responseChan
+	if response.Error != nil {
+		logs.Error("Failed to submit vote:", response.Error)
+		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = map[string]string{"error": "Failed to submit vote"}
 		c.ServeJSON()
 		return
 	}
-	defer resp.Body.Close()
 
-	responseBody, _ := ioutil.ReadAll(resp.Body)
-	c.Data["json"] = json.RawMessage(responseBody)
+	c.Data["json"] = json.RawMessage(response.Body)
 	c.ServeJSON()
 }
